@@ -2,9 +2,10 @@ import codecs
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 
-TITLE_NOTE = "Consumer Reports"
+
+TITLE_NOTE = "desborda"
 
 BASE_URL = 'https://www.lun.com'
 PAGES_ENDPOINT = 'pages/LUNHomepage.aspx'
@@ -41,8 +42,10 @@ def fake_visit(driver):
 
     note_id = find_node_id(driver)
 
+    # save_file(driver)
+
     if not note_id:
-        exit("Ups! No encontramos la nota, pero esta es la url: " + generate_url())
+        print("Ups! No encontramos la nota, pero esta es la url: " + generate_url())
 
     element = driver.find_element(By.ID, note_id)
     driver.execute_script("arguments[0].click();", element)
@@ -70,13 +73,13 @@ def find_node_id(driver):
 def main():
     '''main'''
 
-    options = Options()
-    options.add_argument('--headless')
+    chrome_options = ChromeOptions()
+    chrome_options.add_argument("--headless=new")
 
-    driver = webdriver.Firefox(executable_path='geckodriver', options=options)
+    driver = webdriver.Chrome(options=chrome_options)
     driver.accept_untrusted_certs = True
 
-    print ("Keywords: "+TITLE_NOTE)
+    print ("Keywords: " + TITLE_NOTE)
 
     for item in range(TOTAL_FAKE_VISIT):
         try:
