@@ -11,7 +11,7 @@ BASE_URL = 'https://www.lun.com'
 PAGES_ENDPOINT = 'pages/LUNHomepage.aspx'
 DATE = '28-11-2022 0:00:00'
 
-TOTAL_FAKE_VISIT = 100000
+TOTAL_FAKE_VISIT = 1000
 
 COOKIES = [
     'LUNUniqueVisitor_New',
