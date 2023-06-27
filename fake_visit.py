@@ -72,8 +72,6 @@ def find_node_id(driver):
 
 def main():
     '''main'''
-
-    print ("welcome to fake visit")
     
     chrome_options = ChromeOptions()
     chrome_options.add_argument("--headless=new")
@@ -98,4 +96,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    print ("welcome to fake visit")
+
+    # main()
