@@ -1,4 +1,6 @@
 # Fake Visit
+[![Selenium Test](https://github.com/GonzaloAfa/fake_visit/actions/workflows/selenium.yml/badge.svg)](https://github.com/GonzaloAfa/fake_visit/actions/workflows/selenium.yml)
+
 Literalmente con este script podemos simular visitas a sitios web.
 
 
