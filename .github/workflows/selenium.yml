@@ -35,6 +35,5 @@ jobs:
         pip3 install -r requeriments.txt
 
     - name: Run Selenium test
-      run: python3 fake_visit.py  # Reemplaza "your_test_file.py" con el nombre de tu archivo de prueba
-
-
+      run: python3 fake_visit.py
+      shell: sh
