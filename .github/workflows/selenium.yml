@@ -35,6 +35,7 @@ jobs:
 
     - name: Run Selenium test
       run: |
-           export INPUT_STORE=$(python3 fake_visit.py)
-           echo "Result: "
-           echo $INPUT_STORE
+          echo "::debug::Set the fake test"
+          export INPUT_STORE=$(python3 fake_visit.py)
+          echo "Result "
+          echo $INPUT_STORE
