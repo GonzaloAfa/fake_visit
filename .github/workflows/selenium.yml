@@ -33,6 +33,9 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install -r requeriments.txt
 
+    - name: Show github output
+      run: echo "$GITHUB_OUTPUT"
+
     - name: Run Selenium test
       run: |
           echo "::debug::Set the fake test"

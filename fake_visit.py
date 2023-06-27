@@ -1,4 +1,6 @@
 import codecs
+import os
+import uuid
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -23,6 +25,13 @@ COOKIES = [
 ]
 
 
+def set_output(name, value):
+    try:
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f'{name}={value}', file=fh)
+    except:
+        print(value)
+
 def generate_url():
     '''generate_url'''
     return f"{BASE_URL}/{PAGES_ENDPOINT}?xp={DATE}&BodyID=0&xp={DATE}"
@@ -45,7 +54,7 @@ def fake_visit(driver):
     # save_file(driver)
 
     if not note_id:
-        print("Ups! No encontramos la nota, pero esta es la url: " + generate_url())
+        set_output("error", "Ups! No encontramos la nota, pero esta es la url: " + generate_url())
 
     element = driver.find_element(By.ID, note_id)
     driver.execute_script("arguments[0].click();", element)
@@ -87,14 +96,14 @@ def main():
             clear_cookies(driver)
 
             if item % 10 == 0:
-                print(item)
+                set_output("items", str(item))
 
         except Exception:
-            print("Tuvimos un error en una de las peticiones")
+            set_output("error", "Tuvimos un error en una de las peticiones")
 
     driver.quit()
 
 
 if __name__ == '__main__':
-    print ("welcome to fake visit")
+    set_output("start", "welcome to fake visit")
     main()
