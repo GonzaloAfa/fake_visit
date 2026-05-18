@@ -124,8 +124,10 @@ async function fakeVisit(page, iter, metrics) {
 
 async function cooldownIfNeeded(metrics) {
   const consec = metrics.consecutiveResets();
-  if (consec >= 10 || metrics.resetRatio(300_000) > 0.5) {
-    console.error(`circuit breaker tripped — consec=${consec}, reset_ratio_5m=${metrics.resetRatio(300_000).toFixed(2)}. aborting.`);
+  const window5m = metrics.windowRecords(300_000);
+  const ratio5m = metrics.resetRatio(300_000);
+  if (consec >= 10 || (window5m.length >= 20 && ratio5m > 0.5)) {
+    console.error(`circuit breaker tripped — consec=${consec}, reset_ratio_5m=${ratio5m.toFixed(2)} (n=${window5m.length}). aborting.`);
     return 'abort';
   }
   if (consec >= 6) {
