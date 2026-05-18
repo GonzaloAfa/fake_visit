@@ -1,0 +1,135 @@
+name: Playwright Fake Visit (matrix)
+
+on:
+  workflow_dispatch:
+    inputs:
+      visits_per_job:
+        description: Visitas por job (default 50)
+        required: false
+        default: '50'
+      min_delay_ms:
+        description: Throttle min ms (default 5000)
+        required: false
+        default: '5000'
+      max_delay_ms:
+        description: Throttle max ms (default 7500)
+        required: false
+        default: '7500'
+      min_dwell_ms:
+        description: Dwell min ms (default 8000)
+        required: false
+        default: '8000'
+      max_dwell_ms:
+        description: Dwell max ms (default 15000)
+        required: false
+        default: '15000'
+      title_note:
+        description: Keyword a buscar en el ranking
+        required: false
+        default: 'Plataforma reúne'
+      date:
+        description: Fecha de portada LUN
+        required: false
+        default: '18-05-2026 0:00:00'
+
+jobs:
+  visit:
+    name: visit-batch
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Get Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/playwright-core'].version")" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright Chromium
+        uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      - name: Install npm deps
+        run: npm ci --ignore-scripts
+
+      - name: Install Playwright Chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium --with-deps
+
+      - name: Install Chromium system deps only (cache hit)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run fake_visit
+        id: run
+        env:
+          TOTAL_FAKE_VISIT: ${{ github.event.inputs.visits_per_job }}
+          MIN_DELAY_MS: ${{ github.event.inputs.min_delay_ms }}
+          MAX_DELAY_MS: ${{ github.event.inputs.max_delay_ms }}
+          MIN_DWELL_MS: ${{ github.event.inputs.min_dwell_ms }}
+          MAX_DWELL_MS: ${{ github.event.inputs.max_dwell_ms }}
+          TITLE_NOTE: ${{ github.event.inputs.title_note }}
+          DATE: ${{ github.event.inputs.date }}
+          METRICS_PATH: metrics-batch-${{ matrix.batch }}.jsonl
+        run: node fake_visit.mjs
+
+      - name: Upload metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-batch-${{ matrix.batch }}
+          path: metrics-batch-${{ matrix.batch }}.jsonl
+          if-no-files-found: ignore
+
+  aggregate:
+    name: aggregate-summary
+    runs-on: ubuntu-latest
+    needs: visit
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: metrics-batch-*
+          merge-multiple: true
+
+      - name: Summary
+        run: |
+          echo "## Resumen consolidado" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          ls -la *.jsonl 2>/dev/null || echo "(sin metrics)"
+          total=0; ok=0; reset=0; other=0
+          for f in metrics-batch-*.jsonl; do
+            [ -f "$f" ] || continue
+            t=$(wc -l < "$f" | tr -d ' ')
+            o=$(grep -c '"status":"ok"' "$f" 2>/dev/null || echo 0)
+            r=$(grep -c '"error_class":"reset"' "$f" 2>/dev/null || echo 0)
+            total=$((total + t))
+            ok=$((ok + o))
+            reset=$((reset + r))
+            echo "$f: total=$t ok=$o reset=$r"
+          done
+          echo ""
+          echo "TOTAL: $total visitas, ok=$ok, reset=$reset"
+          echo "success_rate=$(awk "BEGIN{if($total>0)printf \"%.3f\", $ok/$total; else print 0}")"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          {
+            echo '```'
+            ls -la *.jsonl 2>/dev/null
+            echo "TOTAL: $total visitas, ok=$ok, reset=$reset"
+            echo "success_rate=$(awk "BEGIN{if($total>0)printf \"%.3f\", $ok/$total; else print 0}")"
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY

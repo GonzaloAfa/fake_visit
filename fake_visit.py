@@ -7,11 +7,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 
 
-TITLE_NOTE = "desborda"
+TITLE_NOTE = "plataforma"
 
 BASE_URL = 'https://www.lun.com'
 PAGES_ENDPOINT = 'pages/LUNHomepage.aspx'
-DATE = '28-11-2022 0:00:00'
+DATE = '18-05-2026 0:00:00'
 
 TOTAL_FAKE_VISIT = 1000
 
