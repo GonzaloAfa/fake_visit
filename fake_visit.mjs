@@ -3,10 +3,18 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { launchBrowser, newContextWithIdentity } from './lib/browser.mjs';
 import { Metrics } from './lib/metrics.mjs';
 
-const TITLE_NOTE = process.env.TITLE_NOTE || 'Plataforma reúne';
-const BASE_URL = 'https://www.lun.com';
-const PAGES_ENDPOINT = 'pages/LUNHomepage.aspx';
-const DATE = process.env.DATE || '18-05-2026 0:00:00';
+const TITLE_NOTE = process.env.TITLE_NOTE || '';
+const TARGET_URL_TEMPLATE = process.env.TARGET_URL_TEMPLATE || '';
+const DATE = process.env.DATE || '';
+
+if (!TARGET_URL_TEMPLATE) {
+  console.error('Falta TARGET_URL_TEMPLATE en el entorno (es un secret).');
+  process.exit(1);
+}
+if (!TITLE_NOTE) {
+  console.error('Falta TITLE_NOTE en el entorno.');
+  process.exit(1);
+}
 
 const TOTAL_FAKE_VISIT = Number(process.env.TOTAL_FAKE_VISIT || 1000);
 const MIN_DELAY_MS = Number(process.env.MIN_DELAY_MS || 2500);
@@ -40,7 +48,7 @@ function setOutput(name, value) {
 }
 
 function generateUrl() {
-  return `${BASE_URL}/${PAGES_ENDPOINT}?xp=${DATE}&BodyID=0&xp=${DATE}`;
+  return TARGET_URL_TEMPLATE.replaceAll('{DATE}', DATE);
 }
 
 function randomBetween(min, max) {
@@ -149,8 +157,13 @@ function adaptiveThrottle(metrics, base) {
 }
 
 async function main() {
+  const url = generateUrl();
   console.log(`Keywords: ${TITLE_NOTE}`);
-  console.log(`Target: ${generateUrl()}`);
+  try {
+    console.log(`Target host: ${new URL(url).host}`);
+  } catch {
+    console.log('Target host: (invalid url)');
+  }
   console.log(`Total: ${TOTAL_FAKE_VISIT}, throttle=${MIN_DELAY_MS}-${MAX_DELAY_MS}ms, dwell=${MIN_DWELL_MS}-${MAX_DWELL_MS}ms`);
   if (proxy) console.log(`Proxy: ${proxy.server}`);
 

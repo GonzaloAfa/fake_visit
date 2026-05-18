@@ -2,10 +2,15 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { launchBrowser, newContextWithIdentity } from './lib/browser.mjs';
 import { Metrics } from './lib/metrics.mjs';
 
-const BASE_URL = 'https://www.lun.com';
-const PAGES_ENDPOINT = 'pages/LUNHomepage.aspx';
-const DATE = process.env.DATE || '18-05-2026 0:00:00';
-const URL = `${BASE_URL}/${PAGES_ENDPOINT}?xp=${DATE}&BodyID=0&xp=${DATE}`;
+const TARGET_URL_TEMPLATE = process.env.TARGET_URL_TEMPLATE || '';
+const DATE = process.env.DATE || '';
+
+if (!TARGET_URL_TEMPLATE) {
+  console.error('Falta TARGET_URL_TEMPLATE en el entorno (es un secret).');
+  process.exit(1);
+}
+
+const TARGET_URL = TARGET_URL_TEMPLATE.replaceAll('{DATE}', DATE);
 
 const LEVELS_SEC = (process.env.LEVELS_SEC || '30,15,10,6,4,3,2,1.5,1').split(',').map(Number);
 const LEVEL_MINUTES = Number(process.env.LEVEL_MINUTES || 3);
@@ -24,7 +29,7 @@ function p95(arr) {
 async function probeOnce(page, metrics, iter) {
   const tStart = Date.now();
   try {
-    await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await metrics.record({ iter, latency_ms: Date.now() - tStart, status: 'ok' });
     return 'ok';
   } catch (err) {
@@ -115,7 +120,11 @@ async function runLevel(page, metrics, intervalSec, baselineP95, totalSoFar) {
 }
 
 async function main() {
-  console.log(`Ramp-up test contra ${URL}`);
+  try {
+    console.log(`Ramp-up test contra host: ${new URL(TARGET_URL).host}`);
+  } catch {
+    console.log('Ramp-up test target inválido');
+  }
   console.log(`Niveles (segundos): ${LEVELS_SEC.join(', ')}`);
   console.log(`Budget total: ${TOTAL_BUDGET} reqs`);
 

@@ -28,7 +28,7 @@ on:
         required: false
         default: 'Plataforma reúne'
       date:
-        description: Fecha de portada LUN
+        description: Fecha (formato dd-mm-yyyy h:m:s)
         required: false
         default: '18-05-2026 0:00:00'
 
@@ -75,6 +75,7 @@ jobs:
       - name: Run fake_visit
         id: run
         env:
+          TARGET_URL_TEMPLATE: ${{ secrets.TARGET_URL_TEMPLATE }}
           TOTAL_FAKE_VISIT: ${{ github.event.inputs.visits_per_job }}
           MIN_DELAY_MS: ${{ github.event.inputs.min_delay_ms }}
           MAX_DELAY_MS: ${{ github.event.inputs.max_delay_ms }}
