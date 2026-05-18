@@ -1,0 +1,12 @@
+{
+  "name": "fake_visit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node fake_visit.mjs",
+    "postinstall": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}

@@ -17,3 +17,10 @@ brew install chromedriver
 ```
 
 Al ejecutarlo por primera vez, solicitará permisos porque el driver de chrome se instaló por fuera de la `AppStore`
+
+## Ejecución en Node.js (opcional, en evaluación)
+```
+npm install
+npm start
+```
+`npm install` descarga Chromium vía `playwright install` (postinstall). El workflow de CI sigue corriendo la versión Python por ahora.
